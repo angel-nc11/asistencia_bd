@@ -2,33 +2,35 @@
 CREATE DATABASE IF NOT EXISTS asistencia_db CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 USE asistencia_db;
 
+DROP TABLE IF EXISTS tipo_usuario;
 -- Tabla de tipos de usuario del sistema
 CREATE TABLE tipo_usuario (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  nombre VARCHAR(50) NOT NULL UNIQUE,
+  nombre VARCHAR(50),
   descripcion TEXT,
-  tipo_empleado_id INT, 
   fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  activo TINYINT(1) DEFAULT 1,
-  FOREIGN KEY (tipo_empleado_id) REFERENCES tipo_empleado(id)
+  activo TINYINT(1) DEFAULT 1
 );
 
+select * from tipo_usuario;
+
+DROP TABLE IF EXISTS usuarios;
 -- Tabla de usuarios
 CREATE TABLE usuarios (
   id INT AUTO_INCREMENT PRIMARY KEY,
   usuario VARCHAR(50) NOT NULL UNIQUE,
+  correo VARCHAR(255) NOT NULL,
   contrasena VARCHAR(255) NOT NULL,
   tipo_usuario_id INT NOT NULL,
-  empleado_id INT UNIQUE, -- Relación con empleados
   fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   activo TINYINT(1) DEFAULT 1,
-  FOREIGN KEY (tipo_usuario_id) REFERENCES tipo_usuario(id),
-  FOREIGN KEY (empleado_id) REFERENCES empleados(id), 
-  INDEX(usuario)
+  CONSTRAINT FK_tipoUsuario FOREIGN KEY (tipo_usuario_id) REFERENCES tipo_usuario(id)
 );
 
+
+DROP TABLE IF EXISTS tipo_empleado;
 -- Tabla de tipos de empleados
 CREATE TABLE tipo_empleado (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -39,6 +41,7 @@ CREATE TABLE tipo_empleado (
   activo TINYINT(1) DEFAULT 1
 );
 
+DROP TABLE IF EXISTS empleados;
 -- Tabla de empleados
 CREATE TABLE empleados (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -52,10 +55,10 @@ CREATE TABLE empleados (
   fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   activo TINYINT(1) DEFAULT 1,
-  FOREIGN KEY (tipo_empleado_id) REFERENCES tipo_empleado(id),
-  INDEX(dpi)
+  CONSTRAINT FK_tipoEmpleado FOREIGN KEY (tipo_empleado_id) REFERENCES tipo_empleado(id)
 );
 
+DROP TABLE IF EXISTS horarios;
 -- Tabla de horarios
 CREATE TABLE horarios (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -69,6 +72,7 @@ CREATE TABLE horarios (
   activo TINYINT(1) DEFAULT 1
 );
 
+DROP TABLE IF EXISTS empleado_horario;
 -- Tabla de relación entre empleado, horario y día de la semana
 CREATE TABLE empleado_horario (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -80,12 +84,13 @@ CREATE TABLE empleado_horario (
   fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   activo TINYINT(1) DEFAULT 1,
-  FOREIGN KEY (empleado_id) REFERENCES empleados(id),
-  FOREIGN KEY (horario_id) REFERENCES horarios(id),
+  CONSTRAINT FK_empleadoId FOREIGN KEY (empleado_id) REFERENCES empleados(id),
+  CONSTRAINT FK_horarioId FOREIGN KEY (horario_id) REFERENCES horarios(id),
   INDEX(empleado_id),
   INDEX(horario_id)
 );
 
+DROP TABLE IF EXISTS asistencia;
 -- Tabla de asistencia
 CREATE TABLE asistencia (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -98,10 +103,11 @@ CREATE TABLE asistencia (
   fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   activo TINYINT(1) DEFAULT 1,
-  FOREIGN KEY (empleado_id) REFERENCES empleados(id),
+  CONSTRAINT FK_asistencia_empleado FOREIGN KEY (empleado_id) REFERENCES empleados(id),
   INDEX(fecha)
 );
 
+DROP TABLE IF EXISTS justificaciones;
 -- Tabla de justificaciones asociadas a una asistencia
 CREATE TABLE justificaciones (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -113,10 +119,12 @@ CREATE TABLE justificaciones (
   fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   activo TINYINT(1) DEFAULT 1,
-  FOREIGN KEY (asistencia_id) REFERENCES asistencia(id),
-  FOREIGN KEY (aprobado_por) REFERENCES usuarios(id)
+  CONSTRAINT FK_asistenciaId FOREIGN KEY (asistencia_id) REFERENCES asistencia(id),
+  CONSTRAINT FK_usuarioId FOREIGN KEY (aprobado_por) REFERENCES usuarios(id)
 );
 
+
+DROP TABLE IF EXISTS visitas;
 -- Tabla de visitas externas
 CREATE TABLE visitas (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -132,6 +140,28 @@ CREATE TABLE visitas (
   fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   activo TINYINT(1) DEFAULT 1,
-  FOREIGN KEY (registrado_por) REFERENCES usuarios(id)
+  CONSTRAINT FK_registroVisita FOREIGN KEY (registrado_por) REFERENCES usuarios(id)
 );
 
+SELECT* from usuarios;
+
+
+INSERT INTO usuarios(usuario, correo, contrasena, tipo_usuario_id)
+VALUES ('angel','angel@gmail.com','ancaraMessi',1);
+select * from usuarios;
+
+
+INSERT INTO tipo_usuario (nombre, descripcion)
+values
+    ('Super Administrador','Administra todo el sistema'),
+    ('Admin','Admiitra todo el sistema'),
+    ('Empleado','Persona encargada de marcar las asistencias');
+
+select * from tipo_usuario;
+
+INSERT INTO tipo_empleado (nombre, descripcion)
+VALUES ('Administrativo','responsable de marcar asistencia'),
+       ('Operativo','colaborador operativo de la empresa');
+SELECT * FROM tipo_empleado;
+
+select * from empleados;
